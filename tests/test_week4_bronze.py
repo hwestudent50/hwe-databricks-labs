@@ -40,7 +40,7 @@ def test_books_insert_overwrite(spark):
         SELECT * FROM bronze.books
         WHERE ingestion_timestamp IS NULL OR source_filename IS NULL
     """).collect()
-    assert len(nulls) == 1
+    assert len(nulls) == 0
     # TODO: assert len(nulls) equals 0
 
 
@@ -52,7 +52,7 @@ def test_online_orders_merge(spark):
     _run_cell(spark, "bronze_online_orders_merge")
     row = spark.sql("SELECT * FROM bronze.online_orders WHERE order_id = 'ONL-001'").collect()
     assert len(row) == 1
-    assert row[0].customer_name == "alice@example.com"
+    assert row[0].customer_email == "alice@example.com"
     # row is a list of Row objects; row[0].customer_email is a string
     # TODO: assert that exactly one row exists for ONL-001 and it has the correct customer_email
 
@@ -105,7 +105,7 @@ def test_instore_orders_has_cashier_name(spark):
     _run_cell(spark, "bronze_instore_orders_merge")
     row = spark.sql("SELECT * FROM bronze.instore_orders").collect()
     assert len(row) == 1
-    assert row[0].casher_name == "Bob Jones"
+    assert row[0].cashier_name == "Bob Jones"
     # row is a list of Row objects; row[0].cashier_name is a string
     # TODO: assert that row[0].cashier_name equals the expected value
 
