@@ -21,6 +21,8 @@ _W5_LAB = os.path.join(_REPO_ROOT, "labs", "week5", "week5_lab.ipynb")
 def test_stores_merge(spark):
     _run_silver_stores(spark)
     row = spark.sql("SELECT * FROM silver.stores WHERE store_nbr = 'S001'").collect()
+    assert(len(row) == 1)
+    assert row[0].name == 'Downtown Books
     # row is a list of Row objects; row[0].name is a string
     # TODO: assert that exactly one row exists for S001 with name 'Downtown Books'
 
@@ -33,6 +35,10 @@ def test_categories_merge(spark):
     _run_silver_categories(spark)
     space_opera = spark.sql("SELECT * FROM silver.categories WHERE category_id = '11'").collect()[0]
     fiction = spark.sql("SELECT * FROM silver.categories WHERE category_id = '1'").collect()[0]
+    assert(len(space_opera.parent_category_id) == 1)
+    assert(len(fiction.parent_category_id) == 1)
+    assert space_opera.parent_category_id == '1'
+    assert fiction.parent_category_id == ''
     # space_opera and fiction are Row objects; .parent_category_id is a string
     # TODO: assert space_opera.parent_category_id and fiction.parent_category_id are correct
 
@@ -46,6 +52,9 @@ def test_books_filters_invalid_isbn(spark):
     book1 = spark.sql("SELECT * FROM silver.books WHERE isbn = '978-0-00-000001-1'").collect()
     book2 = spark.sql("SELECT * FROM silver.books WHERE isbn = '978-0-00-000002-2'").collect()
     bad = spark.sql("SELECT * FROM silver.books WHERE isbn = 'BADISBN'").collect()
+    assert len(book1) == 1
+    assert len(book2) == 2
+    assert len(bad) == 0
     # TODO: assert len(book1) equals 1, len(book2) equals 1, and len(bad) equals 0
 
 
@@ -58,6 +67,10 @@ def test_customers_takes_most_recent(spark):
     alice = spark.sql(
         "SELECT * FROM silver.customers WHERE email = 'alice@example.com'"
     ).collect()
+    assert len(alice) == 1
+    assert alice[0].name == 'Alice New'
+    assert alice[0].address == '200 New Ave'
+    assert alice[0].city == 'NewCity'
     # alice is a list of Row objects; .name, .address, .city are strings
     # TODO: assert alice has exactly 1 row (deduplication worked) and alice[0].name, .address, .city
     # match the MORE RECENT order (ONL-002, 2025-07-15): 'Alice New', '200 New Ave', 'NewCity'
@@ -73,6 +86,12 @@ def test_orders_unified(spark):
     onl_002 = spark.sql("SELECT * FROM silver.orders WHERE order_id = 'ONL-002'").collect()
     ins_001 = spark.sql("SELECT * FROM silver.orders WHERE order_id = 'INS-001'").collect()
     ins_002 = spark.sql("SELECT * FROM silver.orders WHERE order_id = 'INS-002'").collect()
+    assert(len(onl_001) == 1)
+    assert(len(onl_002) == 1)
+    assert(len(ins_001) == 1)
+    assert(len(ins_002) == 1)
+    assert(onl_001[0].order_channel == 'online')
+    assert(ins_001[0].order_channel == 'in-store')
     # TODO: assert len of each equals 1, and onl_001[0].order_channel equals 'online'
     # and ins_001[0].order_channel equals 'in-store'
 
@@ -83,6 +102,7 @@ def test_orders_online_sentinel(spark):
         SELECT * FROM silver.orders
         WHERE order_channel = 'online' AND store_nbr != 'online'
     """).collect()
+    assert(len(wrong_store) == 0)
     # TODO: assert len(wrong_store) equals 0
 
 
@@ -90,6 +110,8 @@ def test_orders_instore_null_email_sentinel(spark):
     _run_silver_orders(spark)
     ins_001 = spark.sql("SELECT * FROM silver.orders WHERE order_id = 'INS-001'").collect()
     ins_002 = spark.sql("SELECT * FROM silver.orders WHERE order_id = 'INS-002'").collect()
+    assert(ins_001[0].customer_email == 'in-store')
+    assert(ins_002[0].customer_email == 'bob@example.com')
     # TODO: assert that ins_001[0].customer_email equals 'in-store' (NULL email became sentinel),
     # and ins_002[0].customer_email equals 'bob@example.com'
 
@@ -103,6 +125,9 @@ def test_order_items_exploded(spark):
     onl_001 = spark.sql("SELECT * FROM silver.order_items WHERE order_id = 'ONL-001'").collect()
     ins_001 = spark.sql("SELECT * FROM silver.order_items WHERE order_id = 'INS-001'").collect()
     ins_002 = spark.sql("SELECT * FROM silver.order_items WHERE order_id = 'INS-002'").collect()
+    assert(len(onl_001) == 1)
+    assert(len(ins_001) == 1)
+    assert(len(ins_002) == 2)
     # TODO: assert len(onl_001) equals 1, len(ins_001) equals 1, and len(ins_002) equals 2
     # (INS-002 had 2 items in its JSON array, so it should explode into 2 rows)
 
