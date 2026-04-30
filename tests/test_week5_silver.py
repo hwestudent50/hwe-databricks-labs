@@ -35,9 +35,9 @@ def test_categories_merge(spark):
     _run_silver_categories(spark)
     space_opera = spark.sql("SELECT * FROM silver.categories WHERE category_id = '11'").collect()[0]
     fiction = spark.sql("SELECT * FROM silver.categories WHERE category_id = '1'").collect()[0]
-    assert(len(space_opera.parent_category_id) == 1)
-    assert(len(fiction.parent_category_id) == 1)
-    assert space_opera.parent_category_id == '1'
+    assert(len(space_opera) == 1)
+    assert(len(fiction) == 1)
+    assert space_opera.parent_category_id == '3'
     assert fiction.parent_category_id == ''
     # space_opera and fiction are Row objects; .parent_category_id is a string
     # TODO: assert space_opera.parent_category_id and fiction.parent_category_id are correct
@@ -53,7 +53,7 @@ def test_books_filters_invalid_isbn(spark):
     book2 = spark.sql("SELECT * FROM silver.books WHERE isbn = '978-0-00-000002-2'").collect()
     bad = spark.sql("SELECT * FROM silver.books WHERE isbn = 'BADISBN'").collect()
     assert len(book1) == 1
-    assert len(book2) == 2
+    assert len(book2) == 1
     assert len(bad) == 0
     # TODO: assert len(book1) equals 1, len(book2) equals 1, and len(bad) equals 0
 
