@@ -22,7 +22,7 @@ def test_stores_merge(spark):
     _run_silver_stores(spark)
     row = spark.sql("SELECT * FROM silver.stores WHERE store_nbr = 'S001'").collect()
     assert(len(row) == 1)
-    assert row[0].name == 'Downtown Books
+    assert row[0].name == 'Downtown Books'
     # row is a list of Row objects; row[0].name is a string
     # TODO: assert that exactly one row exists for S001 with name 'Downtown Books'
 
